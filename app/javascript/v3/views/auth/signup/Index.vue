@@ -4,6 +4,7 @@ import { useStore } from 'vuex';
 import SignupForm from './components/Signup/Form.vue';
 import Testimonials from './components/Testimonials/Index.vue';
 import Spinner from 'shared/components/Spinner.vue';
+import { useBranding } from 'shared/composables/useBranding';
 import signupBg from 'assets/images/auth/signup-bg.jpg';
 
 const props = defineProps({
@@ -14,6 +15,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { replaceInstallationName } = useBranding();
 
 const isLoading = ref(false);
 const globalConfig = computed(() => store.getters['globalConfig/get']);
@@ -61,14 +63,14 @@ const resizeContainers = () => {
             <h2 class="mt-6 text-2xl font-semibold text-n-slate-12">
               {{
                 isShopifySignup
-                  ? $t('REGISTER.SHOPIFY.TITLE')
+                  ? replaceInstallationName($t('REGISTER.SHOPIFY.TITLE'))
                   : isAChatwootInstance
                     ? $t('REGISTER.GET_STARTED')
                     : $t('REGISTER.TRY_WOOT')
               }}
             </h2>
             <p v-if="isShopifySignup" class="mt-2 text-sm text-n-slate-11">
-              {{ $t('REGISTER.SHOPIFY.DESCRIPTION') }}
+              {{ replaceInstallationName($t('REGISTER.SHOPIFY.DESCRIPTION')) }}
             </p>
             <p v-else class="mt-2 text-sm text-n-slate-11">
               {{ $t('REGISTER.HAVE_AN_ACCOUNT') }}{{ ' '
