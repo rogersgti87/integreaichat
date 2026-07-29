@@ -40,7 +40,10 @@ class Webhooks::ShopifyController < ActionController::API
   end
 
   def handle_shop_redact
-    shopify_hooks(params[:shop_domain]).find_each(&:destroy!)
+    shopify_hooks(params[:shop_domain]).find_each do |hook|
+      Shopify::UninstallationService.new(hook: hook).perform
+      hook.destroy! if hook.persisted?
+    end
   end
 
   def handle_app_uninstalled
