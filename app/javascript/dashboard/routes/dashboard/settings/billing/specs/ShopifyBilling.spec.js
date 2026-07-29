@@ -123,6 +123,10 @@ describe('ShopifyBilling', () => {
     expect(EnterpriseAccountAPI.billingSummary).toHaveBeenCalledWith({
       refresh: false,
     });
+    expect(EnterpriseAccountAPI.billingSummary).toHaveBeenCalledWith({
+      refresh: true,
+    });
+    expect(mocks.dispatch).toHaveBeenCalledWith('setUser');
     expect(wrapper.text()).toContain('Shopify Growth');
     expect(wrapper.text()).toContain('BILLING_SETTINGS.SHOPIFY.STATUS.ACTIVE');
     expect(wrapper.text()).toContain('$49.00');
@@ -203,6 +207,7 @@ describe('ShopifyBilling', () => {
   it('shows an initial error and retries without losing the page', async () => {
     EnterpriseAccountAPI.billingSummary
       .mockRejectedValueOnce(new Error('Shopify unavailable'))
+      .mockResolvedValueOnce({ data: summary })
       .mockResolvedValueOnce({ data: summary });
 
     const wrapper = mountComponent();
@@ -213,7 +218,7 @@ describe('ShopifyBilling', () => {
     await wrapper.find('button').trigger('click');
     await flushPromises();
 
-    expect(EnterpriseAccountAPI.billingSummary).toHaveBeenCalledTimes(2);
+    expect(EnterpriseAccountAPI.billingSummary).toHaveBeenCalledTimes(3);
     expect(wrapper.text()).toContain('Shopify Growth');
   });
 

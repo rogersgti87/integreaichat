@@ -2,6 +2,7 @@ import {
   getLoginRedirectURL,
   getCredentialsFromEmail,
   getSignupRoute,
+  isShopifyBillingAccount,
   requiresShopifyBilling,
 } from '../AuthHelper';
 
@@ -129,6 +130,29 @@ describe('#URL Helpers', () => {
         ).toBe(true);
       }
     );
+  });
+
+  describe('isShopifyBillingAccount', () => {
+    it('requires both Shopify billing ownership and the account feature gate', () => {
+      expect(
+        isShopifyBillingAccount({
+          billing_provider: 'shopify',
+          shopify_integration: true,
+        })
+      ).toBe(true);
+      expect(
+        isShopifyBillingAccount({
+          billing_provider: 'shopify',
+          shopify_integration: false,
+        })
+      ).toBe(false);
+      expect(
+        isShopifyBillingAccount({
+          billing_provider: 'stripe',
+          shopify_integration: true,
+        })
+      ).toBe(false);
+    });
   });
 
   describe('getCredentialsFromEmail', () => {

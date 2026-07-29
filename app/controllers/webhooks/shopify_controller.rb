@@ -6,6 +6,8 @@ class Webhooks::ShopifyController < ActionController::API
 
   def events
     case request.headers['X-Shopify-Topic']
+    when 'app/uninstalled'
+      handle_app_uninstalled
     when 'shop/redact'
       handle_shop_redact
     end
@@ -38,9 +40,19 @@ class Webhooks::ShopifyController < ActionController::API
   end
 
   def handle_shop_redact
-    shop_domain = params[:shop_domain]
-    return if shop_domain.blank?
+    shopify_hooks(params[:shop_domain]).find_each(&:destroy!)
+  end
 
-    Integrations::Hook.where(app_id: 'shopify', reference_id: shop_domain).find_each(&:destroy!)
+  def handle_app_uninstalled
+    shopify_hooks(params[:myshopify_domain]).find_each do |hook|
+      Shopify::UninstallationService.new(hook: hook).perform
+    end
+  end
+
+  def shopify_hooks(shop_domain)
+    normalized_domain = Shopify::ShopDomain.normalize(shop_domain)
+    return Integrations::Hook.none unless Shopify::ShopDomain.valid?(normalized_domain)
+
+    Integrations::Hook.where(app_id: 'shopify').where('LOWER(reference_id) = ?', normalized_domain)
   end
 end
