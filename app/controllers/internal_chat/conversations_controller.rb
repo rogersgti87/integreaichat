@@ -24,6 +24,11 @@ class InternalChat::ConversationsController < InternalChat::BaseController
         total_count: conversations.total_count
       }
     }
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error("[InternalChat] index failed: #{e.class}: #{e.message}")
+    render json: {
+      error: 'Internal Chat database tables are missing. Run: bundle exec rails db:migrate'
+    }, status: :internal_server_error
   end
 
   def show
@@ -45,6 +50,11 @@ class InternalChat::ConversationsController < InternalChat::BaseController
     }
   rescue InternalChat::Error => e
     render_internal_chat_error(e)
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error("[InternalChat] create failed: #{e.class}: #{e.message}")
+    render json: {
+      error: 'Internal Chat database tables are missing. Run: bundle exec rails db:migrate'
+    }, status: :internal_server_error
   end
 
   def mark_as_read

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_07_28_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_08_07_120000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -1089,6 +1089,63 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_28_000001) do
     t.jsonb "settings", default: {}
   end
 
+  create_table "internal_conversation_participants", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "conversation_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "last_read_message_id"
+    t.datetime "joined_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "conversation_id", "user_id"], name: "idx_internal_participants_account_conversation_user", unique: true
+    t.index ["account_id", "user_id"], name: "index_internal_conversation_participants_on_account_id_and_user_id"
+    t.index ["account_id"], name: "index_internal_conversation_participants_on_account_id"
+    t.index ["conversation_id"], name: "index_internal_conversation_participants_on_conversation_id"
+    t.index ["user_id"], name: "index_internal_conversation_participants_on_user_id"
+  end
+
+  create_table "internal_conversations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "created_by_id", null: false
+    t.string "conversation_type", default: "private", null: false
+    t.datetime "last_message_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "conversation_type"], name: "index_internal_conversations_on_account_id_and_conversation_type"
+    t.index ["account_id", "last_message_at"], name: "index_internal_conversations_on_account_id_and_last_message_at"
+    t.index ["account_id"], name: "index_internal_conversations_on_account_id"
+    t.index ["created_by_id"], name: "index_internal_conversations_on_created_by_id"
+  end
+
+  create_table "internal_message_attachments", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "message_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "message_id"], name: "index_internal_message_attachments_on_account_id_and_message_id"
+    t.index ["account_id"], name: "index_internal_message_attachments_on_account_id"
+    t.index ["message_id"], name: "index_internal_message_attachments_on_message_id"
+  end
+
+  create_table "internal_messages", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "conversation_id", null: false
+    t.bigint "sender_id", null: false
+    t.text "content", default: "", null: false
+    t.string "message_type", default: "text", null: false
+    t.bigint "reply_to_id"
+    t.datetime "edited_at"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "conversation_id", "created_at"], name: "idx_internal_messages_account_conversation_created"
+    t.index ["account_id", "sender_id"], name: "index_internal_messages_on_account_id_and_sender_id"
+    t.index ["account_id"], name: "index_internal_messages_on_account_id"
+    t.index ["conversation_id"], name: "index_internal_messages_on_conversation_id"
+    t.index ["reply_to_id"], name: "index_internal_messages_on_reply_to_id"
+    t.index ["sender_id"], name: "index_internal_messages_on_sender_id"
+  end
+
   create_table "labels", force: :cascade do |t|
     t.string "title"
     t.text "description"
@@ -1504,6 +1561,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_07_28_000001) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "inboxes", "portals"
+  add_foreign_key "internal_conversation_participants", "accounts"
+  add_foreign_key "internal_conversation_participants", "internal_conversations", column: "conversation_id"
+  add_foreign_key "internal_conversation_participants", "users"
+  add_foreign_key "internal_conversations", "accounts"
+  add_foreign_key "internal_conversations", "users", column: "created_by_id"
+  add_foreign_key "internal_message_attachments", "accounts"
+  add_foreign_key "internal_message_attachments", "internal_messages", column: "message_id"
+  add_foreign_key "internal_messages", "accounts"
+  add_foreign_key "internal_messages", "internal_conversations", column: "conversation_id"
+  add_foreign_key "internal_messages", "users", column: "sender_id"
   add_foreign_key "user_sessions", "users"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").

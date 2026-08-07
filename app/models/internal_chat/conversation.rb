@@ -27,6 +27,7 @@ class InternalChat::Conversation < ApplicationRecord
     for_account(account_id)
       .joins(:participants)
       .where(internal_conversation_participants: { account_id: account_id, user_id: user_id })
+      .distinct
   }
   scope :ordered, -> { order(Arel.sql('COALESCE(last_message_at, created_at) DESC')) }
 

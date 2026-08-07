@@ -38,7 +38,9 @@ class CreateInternalChatTables < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
-    add_index :internal_messages, [:account_id, :conversation_id, :created_at]
+    add_index :internal_messages,
+              [:account_id, :conversation_id, :created_at],
+              name: 'idx_internal_messages_account_conversation_created'
     add_index :internal_messages, [:account_id, :sender_id]
     add_index :internal_messages, :reply_to_id
 

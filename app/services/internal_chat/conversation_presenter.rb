@@ -35,7 +35,7 @@ class InternalChat::ConversationPresenter
         role: account_user&.role,
         availability_status: availability_status_for(user.id),
         last_read_message_id: participant.last_read_message_id,
-        joined_at: participant.joined_at
+        joined_at: participant.joined_at&.to_i
       }
     end
   end

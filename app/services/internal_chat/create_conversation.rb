@@ -5,8 +5,11 @@ class InternalChat::CreateConversation
 
   def perform
     validate_participants!
-    return existing_private_conversation if conversation_type == 'private' && existing_private_conversation.present?
 
+    existing = existing_private_conversation
+    return existing if conversation_type == 'private' && existing.present?
+
+    conversation = nil
     ActiveRecord::Base.transaction do
       conversation = InternalChat::Conversation.create!(
         account_id: account.id,
@@ -21,15 +24,15 @@ class InternalChat::CreateConversation
           joined_at: Time.current
         )
       end
-
-      InternalChat::Broadcast.to_participants(
-        conversation,
-        InternalChat::Broadcast::EVENTS[:conversation_created],
-        InternalChat::ConversationPresenter.new(conversation, current_user: created_by).as_json
-      )
-
-      conversation
     end
+
+    InternalChat::Broadcast.to_participants(
+      conversation,
+      InternalChat::Broadcast::EVENTS[:conversation_created],
+      InternalChat::ConversationPresenter.new(conversation, current_user: created_by).as_json
+    )
+
+    conversation
   end
 
   private
