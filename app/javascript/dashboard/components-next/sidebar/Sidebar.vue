@@ -7,6 +7,7 @@ import { useKbd } from 'dashboard/composables/utils/useKbd';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
+import { useInternalChatStore } from 'dashboard/stores/internalChat';
 import { useSidebarKeyboardShortcuts } from './useSidebarKeyboardShortcuts';
 import { vOnClickOutside } from '@vueuse/components';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
@@ -46,6 +47,7 @@ const emit = defineEmits([
 const { accountScopedRoute, isOnChatwootCloud } = useAccount();
 const { isEnterprise } = useConfig();
 const store = useStore();
+const internalChatStore = useInternalChatStore();
 
 // Calls run on the enterprise-only API (cloud runs enterprise); hide the entry
 // on community so it doesn't lead to a dashboard/CTA the backend can't serve.
@@ -253,6 +255,7 @@ onMounted(() => {
   store.dispatch('attributes/get');
   store.dispatch('customViews/get', 'conversation');
   store.dispatch('customViews/get', 'contact');
+  internalChatStore.fetchUnreadCount();
 });
 
 watch([accountId, hasConversationUnreadCounts], fetchConversationUnreadCounts, {
@@ -665,6 +668,14 @@ const menuItems = computed(() => {
           activeOn: ['companies_dashboard_index', 'companies_dashboard_show'],
         },
       ],
+    },
+    {
+      name: 'Internal Chat',
+      label: t('SIDEBAR.INTERNAL_CHAT'),
+      icon: 'i-lucide-messages-square',
+      to: accountScopedRoute('internal_chat_index'),
+      activeOn: ['internal_chat_index', 'internal_chat_conversation'],
+      badgeCount: internalChatStore.unreadCount,
     },
     {
       name: 'Reports',

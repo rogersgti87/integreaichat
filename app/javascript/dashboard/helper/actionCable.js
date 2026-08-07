@@ -5,6 +5,7 @@ import { BUS_EVENTS } from 'shared/constants/busEvents';
 import { emitter } from 'shared/helpers/mitt';
 import { useImpersonation } from 'dashboard/composables/useImpersonation';
 import { useCallsStore } from 'dashboard/stores/calls';
+import { useInternalChatStore } from 'dashboard/stores/internalChat';
 import {
   applyOutboundAnswer,
   armOutboundRecorder,
@@ -64,6 +65,12 @@ class ActionCableConnector extends BaseActionCableConnector {
       'voice_call.outbound_connected': this.onVoiceCallOutboundConnected,
       'voice_call.outbound_accepted': this.onVoiceCallOutboundAccepted,
       'voice_call.ended': this.onVoiceCallEnded,
+      // Internal Chat (decoupled module)
+      'internal_chat.message.created': this.onInternalChatMessageCreated,
+      'internal_chat.conversation.created': this.onInternalChatConversationCreated,
+      'internal_chat.message.read': this.onInternalChatMessageRead,
+      'internal_chat.typing.on': this.onInternalChatTypingOn,
+      'internal_chat.typing.off': this.onInternalChatTypingOff,
     };
   }
 
@@ -419,6 +426,32 @@ class ActionCableConnector extends BaseActionCableConnector {
       }
     }
     useCallsStore().removeCall(data.call_id);
+  };
+
+  // Internal Chat handlers — keep decoupled from inbox conversation events
+  onInternalChatMessageCreated = data => {
+    const currentUserId = this.app.$store.getters.getCurrentUserID;
+    useInternalChatStore().handleRealtimeMessage(data, currentUserId);
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  onInternalChatConversationCreated = data => {
+    useInternalChatStore().handleConversationCreated(data);
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  onInternalChatMessageRead = data => {
+    useInternalChatStore().handleMessageRead(data);
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  onInternalChatTypingOn = data => {
+    useInternalChatStore().handleTyping({ ...data, typing: true });
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  onInternalChatTypingOff = data => {
+    useInternalChatStore().handleTyping({ ...data, typing: false });
   };
 }
 

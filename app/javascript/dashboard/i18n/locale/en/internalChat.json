@@ -1,0 +1,23 @@
+{
+  "INTERNAL_CHAT": {
+    "TITLE": "Internal Chat",
+    "SEARCH_PLACEHOLDER": "Search people or conversations",
+    "NEW_CHAT": "New chat",
+    "EMPTY_STATE": "Select a conversation or start a new chat",
+    "EMPTY_LIST": "No conversations yet",
+    "TYPE_MESSAGE": "Type a message",
+    "SEND": "Send",
+    "ONLINE": "Online",
+    "OFFLINE": "Offline",
+    "ROLE_ADMINISTRATOR": "Administrator",
+    "ROLE_AGENT": "Agent",
+    "ATTACH": "Attach file",
+    "USERS": "People",
+    "CONVERSATIONS": "Conversations",
+    "NO_RESULTS": "No results found",
+    "TODAY": "Today",
+    "YOU": "You",
+    "TYPING": "{name} is typing...",
+    "TYPING_SEVERAL": "Several people are typing..."
+  }
+}

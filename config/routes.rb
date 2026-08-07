@@ -435,6 +435,9 @@ Rails.application.routes.draw do
           end
 
           resources :upload, only: [:create]
+
+          # Internal Chat (decoupled module — see config/routes/internal_chat.rb)
+          draw :internal_chat
         end
       end
       # end of account scoped api routes
