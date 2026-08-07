@@ -1,22 +1,14 @@
-# #
-# # This action will publish Chatwoot CE docker image.
-# # This is set to run against merges to develop, master
-# # and when tags are created.
-# #
-
-name: Publish Chatwoot CE docker images
+name: Publish IntegreAIChat Docker Image
 
 on:
   push:
     branches:
-      - develop
-      - master
-    tags:
-      - v*
+      - main
+
   workflow_dispatch:
 
 env:
-  DOCKER_REPO: chatwoot/chatwoot
+  DOCKER_REPO: rogersgti87/integreaichat
 
 permissions:
   contents: read
@@ -31,9 +23,9 @@ jobs:
             runner: ubuntu-latest
           - platform: linux/arm64
             runner: ubuntu-22.04-arm
+
     runs-on: ${{ matrix.runner }}
-    env:
-      GIT_REF: ${{ github.head_ref || github.ref_name }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,23 +44,13 @@ jobs:
         run: |
           echo -en '\nENV CW_EDITION="ce"' >> docker/Dockerfile
 
-      - name: Set Docker Tags
-        run: |
-          SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            echo "DOCKER_TAG=${DOCKER_REPO}:latest-ce" >> $GITHUB_ENV
-          else
-            echo "DOCKER_TAG=${DOCKER_REPO}:${SANITIZED_REF}-ce" >> $GITHUB_ENV
-          fi
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -81,7 +63,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           platforms: ${{ matrix.platform }}
-          push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+          push: true
           outputs: type=image,name=${{ env.DOCKER_REPO }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
@@ -102,6 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
+
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -110,7 +93,7 @@ jobs:
           pattern: digests-*
           merge-multiple: true
 
-      - name: Login to DockerHub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -119,30 +102,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Create manifest list and push
+      - name: Create latest manifest
         working-directory: ${{ runner.temp }}/digests
-        env:
-          GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
-          SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="${DOCKER_REPO}:latest-ce"
-          else
-            TAG="${DOCKER_REPO}:${SANITIZED_REF}-ce"
-          fi
-
-          docker buildx imagetools create -t $TAG \
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_REPO }}:latest \
             $(printf '${{ env.DOCKER_REPO }}@sha256:%s ' *)
 
-      - name: Inspect image
-        env:
-          GIT_REF: ${{ github.head_ref || github.ref_name }}
+      - name: Create commit tag
+        working-directory: ${{ runner.temp }}/digests
         run: |
-          SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="${DOCKER_REPO}:latest-ce"
-          else
-            TAG="${DOCKER_REPO}:${SANITIZED_REF}-ce"
-          fi
+          docker buildx imagetools create \
+            -t ${{ env.DOCKER_REPO }}:${{ github.sha }} \
+            $(printf '${{ env.DOCKER_REPO }}@sha256:%s ' *)
 
-          docker buildx imagetools inspect $TAG
+      - name: Inspect latest
+        run: |
+          docker buildx imagetools inspect ${{ env.DOCKER_REPO }}:latest
