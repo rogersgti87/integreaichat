@@ -1,6 +1,6 @@
+/* global axios */
 /* Internal Chat API client — account-scoped, decoupled from inbox APIs */
 import ApiClient from './ApiClient';
-import axios from 'axios';
 
 class InternalChatAPI extends ApiClient {
   constructor() {
