@@ -4,9 +4,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useInternalChatStore } from 'dashboard/stores/internalChat';
-import ConversationList from './components/ConversationList.vue';
-import ChatWindow from './components/ChatWindow.vue';
-import NewChatModal from './components/NewChatModal.vue';
+import ConversationList from '../components/ConversationList.vue';
+import ChatWindow from '../components/ChatWindow.vue';
+import NewChatModal from '../components/NewChatModal.vue';
 
 const { t } = useI18n();
 const route = useRoute();
