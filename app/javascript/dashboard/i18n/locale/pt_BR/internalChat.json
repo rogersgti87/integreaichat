@@ -1,0 +1,23 @@
+{
+  "INTERNAL_CHAT": {
+    "TITLE": "Chat Interno",
+    "SEARCH_PLACEHOLDER": "Buscar pessoas ou conversas",
+    "NEW_CHAT": "Nova conversa",
+    "EMPTY_STATE": "Selecione uma conversa ou um colega para começar",
+    "EMPTY_LIST": "Nenhuma conversa ainda",
+    "TYPE_MESSAGE": "Digite uma mensagem",
+    "SEND": "Enviar",
+    "ONLINE": "Online",
+    "OFFLINE": "Offline",
+    "ROLE_ADMINISTRATOR": "Administrador",
+    "ROLE_AGENT": "Agente",
+    "ATTACH": "Anexar arquivo",
+    "USERS": "Usuários",
+    "CONVERSATIONS": "Conversas",
+    "NO_RESULTS": "Nenhum resultado encontrado",
+    "TODAY": "Hoje",
+    "YOU": "Você",
+    "TYPING": "{name} está digitando...",
+    "TYPING_SEVERAL": "Várias pessoas estão digitando..."
+  }
+}

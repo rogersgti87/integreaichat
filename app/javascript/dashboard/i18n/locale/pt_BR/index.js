@@ -43,6 +43,7 @@ import teamsSettings from './teamsSettings.json';
 import webhooks from './webhooks.json';
 import whatsappTemplates from './whatsappTemplates.json';
 import yearInReview from './yearInReview.json';
+import internalChat from './internalChat.json';
 
 export default {
   ...advancedFilters,
@@ -90,4 +91,5 @@ export default {
   ...webhooks,
   ...whatsappTemplates,
   ...yearInReview,
+  ...internalChat,
 };

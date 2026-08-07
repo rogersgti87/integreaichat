@@ -19,7 +19,11 @@ const showNewChat = ref(false);
 const activeConversation = computed(() => store.activeConversation);
 
 onMounted(async () => {
-  await Promise.all([store.fetchConversations(), store.fetchUnreadCount()]);
+  await Promise.all([
+    store.fetchConversations(),
+    store.fetchUnreadCount(),
+    store.fetchUsers(),
+  ]);
   const conversationId = Number(route.params.conversationId);
   if (conversationId) {
     await store.selectConversation(conversationId);
@@ -67,8 +71,9 @@ onUnmounted(() => {
     <ConversationList
       class="w-full max-w-[360px] border-r border-n-weak"
       :conversations="store.conversations"
+      :users="store.users"
       :active-id="store.activeConversationId"
-      :loading="store.uiFlags.fetchingConversations"
+      :loading="store.uiFlags.fetchingConversations || store.uiFlags.fetchingUsers"
       :search-query="store.searchQuery"
       :search-results="store.searchResults"
       @select="openConversation"

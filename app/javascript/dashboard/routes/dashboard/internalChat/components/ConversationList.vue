@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   conversations: { type: Array, default: () => [] },
+  users: { type: Array, default: () => [] },
   activeId: { type: Number, default: null },
   loading: { type: Boolean, default: false },
   searchQuery: { type: String, default: '' },
@@ -41,6 +42,17 @@ const formatTime = conversation => {
       : new Date(raw);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
+
+const roleLabel = role => {
+  if (role === 'administrator') return t('INTERNAL_CHAT.ROLE_ADMINISTRATOR');
+  if (role === 'agent') return t('INTERNAL_CHAT.ROLE_AGENT');
+  return role || '';
+};
+
+const statusLabel = user =>
+  user.availability_status === 'offline'
+    ? t('INTERNAL_CHAT.OFFLINE')
+    : t('INTERNAL_CHAT.ONLINE');
 </script>
 
 <template>
@@ -110,7 +122,9 @@ const formatTime = conversation => {
               <p class="truncate text-sm font-medium text-n-slate-12">
                 {{ user.available_name || user.name }}
               </p>
-              <p class="truncate text-xs text-n-slate-10">{{ user.role }}</p>
+              <p class="truncate text-xs text-n-slate-10">
+                {{ roleLabel(user.role) }} · {{ statusLabel(user) }}
+              </p>
             </div>
           </button>
         </div>
@@ -140,54 +154,103 @@ const formatTime = conversation => {
       </template>
 
       <template v-else>
-        <div
-          v-if="!conversations.length"
-          class="p-6 text-center text-sm text-n-slate-10"
-        >
-          {{ t('INTERNAL_CHAT.EMPTY_LIST') }}
-        </div>
-        <button
-          v-for="conversation in conversations"
-          :key="conversation.id"
-          type="button"
-          class="flex w-full items-center gap-3 border-b border-n-weak px-3 py-3 text-left hover:bg-n-alpha-2"
-          :class="{ 'bg-n-alpha-2': conversation.id === activeId }"
-          @click="$emit('select', conversation)"
-        >
-          <div class="relative shrink-0">
-            <img
-              v-if="conversation.display_avatar_url"
-              :src="conversation.display_avatar_url"
-              class="size-11 rounded-full object-cover"
-              alt=""
-            />
-            <div
-              v-else
-              class="flex size-11 items-center justify-center rounded-full bg-n-brand/15 text-sm font-semibold text-n-brand"
-            >
-              {{ (conversation.display_name || '?').charAt(0).toUpperCase() }}
-            </div>
-            <span
-              v-if="conversation.unread_count > 0"
-              class="absolute -right-1 -top-1 flex min-w-[18px] items-center justify-center rounded-full bg-n-brand px-1 text-[10px] font-bold text-white"
-            >
-              {{ conversation.unread_count }}
-            </span>
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <p class="truncate text-sm font-semibold text-n-slate-12">
-                {{ conversation.display_name }}
-              </p>
-              <span class="shrink-0 text-[11px] text-n-slate-10">
-                {{ formatTime(conversation) }}
+        <div v-if="conversations.length" class="px-3 pt-3">
+          <p class="mb-2 text-xs font-semibold uppercase text-n-slate-10">
+            {{ t('INTERNAL_CHAT.CONVERSATIONS') }}
+          </p>
+          <button
+            v-for="conversation in conversations"
+            :key="conversation.id"
+            type="button"
+            class="mb-1 flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-n-alpha-2"
+            :class="{ 'bg-n-alpha-2': conversation.id === activeId }"
+            @click="$emit('select', conversation)"
+          >
+            <div class="relative shrink-0">
+              <img
+                v-if="conversation.display_avatar_url"
+                :src="conversation.display_avatar_url"
+                class="size-11 rounded-full object-cover"
+                alt=""
+              />
+              <div
+                v-else
+                class="flex size-11 items-center justify-center rounded-full bg-n-brand/15 text-sm font-semibold text-n-brand"
+              >
+                {{ (conversation.display_name || '?').charAt(0).toUpperCase() }}
+              </div>
+              <span
+                v-if="conversation.unread_count > 0"
+                class="absolute -right-1 -top-1 flex min-w-[18px] items-center justify-center rounded-full bg-n-brand px-1 text-[10px] font-bold text-white"
+              >
+                {{ conversation.unread_count }}
               </span>
             </div>
-            <p class="truncate text-xs text-n-slate-10">
-              {{ previewText(conversation) }}
-            </p>
-          </div>
-        </button>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <p class="truncate text-sm font-semibold text-n-slate-12">
+                  {{ conversation.display_name }}
+                </p>
+                <span class="shrink-0 text-[11px] text-n-slate-10">
+                  {{ formatTime(conversation) }}
+                </span>
+              </div>
+              <p class="truncate text-xs text-n-slate-10">
+                {{ previewText(conversation) }}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <div class="px-3 pt-3 pb-3">
+          <p class="mb-2 text-xs font-semibold uppercase text-n-slate-10">
+            {{ t('INTERNAL_CHAT.USERS') }}
+          </p>
+          <p
+            v-if="!users.length"
+            class="p-4 text-center text-sm text-n-slate-10"
+          >
+            {{ t('INTERNAL_CHAT.NO_RESULTS') }}
+          </p>
+          <button
+            v-for="user in users"
+            :key="`team-user-${user.id}`"
+            type="button"
+            class="mb-1 flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-n-alpha-2"
+            @click="$emit('select', { id: null, user })"
+          >
+            <div class="relative shrink-0">
+              <img
+                v-if="user.avatar_url"
+                :src="user.avatar_url"
+                class="size-11 rounded-full object-cover"
+                alt=""
+              />
+              <div
+                v-else
+                class="flex size-11 items-center justify-center rounded-full bg-n-alpha-2 text-sm font-medium"
+              >
+                {{ (user.name || '?').charAt(0).toUpperCase() }}
+              </div>
+              <span
+                class="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-n-solid-1"
+                :class="
+                  user.availability_status === 'offline'
+                    ? 'bg-n-slate-8'
+                    : 'bg-green-500'
+                "
+              />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-semibold text-n-slate-12">
+                {{ user.available_name || user.name }}
+              </p>
+              <p class="truncate text-xs text-n-slate-10">
+                {{ roleLabel(user.role) }} · {{ statusLabel(user) }}
+              </p>
+            </div>
+          </button>
+        </div>
       </template>
     </div>
   </aside>
